@@ -50,6 +50,10 @@ final class PatronController extends Controller
 
         $barcodeRenderer->getBarcode()->setDrawText(false);
 
+        if ($factor = $this->getRequest()->getQueryParam('factor')) {
+            $barcodeRenderer->getBarcode()->setFactor($factor);
+        }
+
         if ($height = $this->getRequest()->getQueryParam('height')) {
             $barcodeRenderer->getBarcode()->setBarHeight($height);
         }
@@ -90,6 +94,12 @@ final class PatronController extends Controller
      *     @SWG\Parameter(
      *         in="query",
      *         name="height",
+     *         required=false,
+     *         type="integer"
+     *     ),
+     *     @SWG\Parameter(
+     *         in="query",
+     *         name="factor",
      *         required=false,
      *         type="integer"
      *     ),
