@@ -1,0 +1,29 @@
+TIME_ZONE = "America/New_York";
+
+MESSAGE_BROKER = "kafka.nypltech.org";
+
+DB_CONNECT_STRING = "pgsql:host=apiservice.cicyc5fazypj.us-east-1.rds.amazonaws.com;dbname=nypl";
+
+IDENTITY_HEADER = "X-NYPL-Identity";
+
+SIERRA_OAUTH_TOKEN_URI = "https://nypl-sierra-test.iii.com/iii/sierra-api/v3/token";
+SIERRA_BASE_API_URL = "https://nypl-sierra-test.iii.com/iii/sierra-api/v3";
+
+OAUTH_TIME_ZONE = "America/Los_Angeles";
+
+SLACK_CHANNEL = "service-logging";
+SLACK_USERNAME = "barcodeService";
+
+CACHE_HOST = "service-job.rtovuw.0001.use1.cache.amazonaws.com";
+CACHE_PORT = "6379";
+
+XH_PROF_BASE_URL = "";
+XH_PROF_DIRECTORY = "";
+
+JOB_SERVICE_URL = "https://api.nypltech.org/api/v0.1/jobs";
+
+AWS_DEFAULT_REGION = "us-east-1";
+
+SWAGGER_GENERAL_URL = "http://api.localhost.org/swagger/general";
+SWAGGER_HOST = "api.localhost.org";
+SWAGGER_SCHEME = "http";

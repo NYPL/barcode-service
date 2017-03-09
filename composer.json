@@ -1,0 +1,16 @@
+{
+  "name": "nypl-services",
+  "description": "NYPL Services Package",
+  "require": {
+    "nypl/microservice-starter": "~0.1",
+    "zircote/swagger-php": "2.0.7",
+    "zendframework/zend-barcode": "2.6.0"
+  },
+  "require-dev": {
+  },
+  "autoload": {
+    "psr-4": {
+      "NYPL\\Services\\": [ "src/" ]
+    }
+  }
+}
