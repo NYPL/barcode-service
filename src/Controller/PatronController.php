@@ -1,7 +1,6 @@
 <?php
 namespace NYPL\Services\Controller;
 
-use NYPL\Starter\APIException;
 use NYPL\Starter\Controller;
 use NYPL\Starter\Filter;
 use NYPL\Services\Model\DataModel\BasePatron\Patron;
@@ -9,6 +8,69 @@ use Zend\Barcode\Barcode;
 
 final class PatronController extends Controller
 {
+    const BARCODE_PREFIX = 'A';
+    const BARCODE_SUFFIX = 'B';
+
+    /**
+     * @param string $id
+     *
+     * @return Patron
+     */
+    protected function getPatron($id = '')
+    {
+        $patron = new Patron();
+
+        $filter = new Filter();
+        $filter->setId($id);
+
+        $patron->addFilter($filter);
+
+        $patron->read();
+
+        return $patron;
+    }
+
+    /**
+     * @param Patron $patron
+     *
+     * @return \Zend\Barcode\Renderer\RendererInterface
+     */
+    protected function getBarcodeRenderer(Patron $patron)
+    {
+        $barcodeRenderer = Barcode::factory(
+            'codabar',
+            'image'
+        );
+
+        $barcodeRenderer->getBarcode()->setText(
+            self::BARCODE_PREFIX .
+            $patron->getPrimaryBarcode() .
+            self::BARCODE_SUFFIX
+        );
+
+        $barcodeRenderer->getBarcode()->setDrawText(false);
+
+        if ($height = $this->getRequest()->getQueryParam('height')) {
+            $barcodeRenderer->getBarcode()->setBarHeight($height);
+        }
+
+        return $barcodeRenderer;
+    }
+
+    /**
+     * @param Patron $patron
+     *
+     * @return string
+     */
+    protected function getBarcodeAsText(Patron $patron)
+    {
+        return base64_encode(
+            $this->bufferOutput(function () use ($patron) {
+                imagepng($this->getBarcodeRenderer($patron)->draw());
+            })
+        );
+    }
+
     /**
      * @SWG\Get(
      *     path="/v0.1/patrons/{id}/barcode",
@@ -54,44 +116,8 @@ final class PatronController extends Controller
      */
     public function getBarcode($id)
     {
-        if ($this->getIdentity()->getSubject() != $id) {
-            throw new APIException('You are not authorized to access this barcode', null, null, null, 403);
-        }
+        $this->checkAccess($id);
 
-        $patron = new Patron();
-
-        $filter = new Filter();
-        $filter->setId($id);
-
-        $patron->addFilter($filter);
-
-        $patron->read();
-
-
-        $barcodeOptions = [];
-        $rendererOptions = [];
-
-        $barcode = Barcode::factory(
-            'codabar',
-            'image',
-            $barcodeOptions,
-            $rendererOptions
-        );
-
-        $barcode->getBarcode()->setText(current($patron->getBarCodes()));
-        $barcode->getBarcode()->setDrawText(false);
-
-        if ($height = $this->getRequest()->getQueryParam('height')) {
-            $barcode->getBarcode()->setBarHeight($height);
-        }
-
-        $imageResource = $barcode->draw();
-
-        ob_start();
-        imagepng($imageResource);
-        $imageData = base64_encode(ob_get_contents());
-        ob_end_clean();
-
-        return $imageData;
+        return $this->getBarcodeAsText($this->getPatron($id));
     }
 }

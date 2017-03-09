@@ -398,4 +398,12 @@ abstract class BasePatron extends DataModel
     {
         return $this->translateArray($data, new VarField(), true);
     }
+
+    /**
+     * @return string
+     */
+    public function getPrimaryBarcode()
+    {
+        return (string) current($this->getBarCodes());
+    }
 }
