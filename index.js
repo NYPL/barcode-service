@@ -66,7 +66,7 @@ exports.handler = function(event, context) {
 
     const php = spawn('./php-cgi', ['index.php'], options);
 
-    if (php.stderr) {
+    if (php.stderr.length) {
         console.log(php.stderr.toString());
     }
 

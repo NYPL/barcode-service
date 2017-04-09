@@ -26,10 +26,6 @@ class ComposerStaticInitf9904d091832bccf456552aa8d9e92f8
             'Zend\\ServiceManager\\' => 20,
             'Zend\\Barcode\\' => 13,
         ),
-        'W' => 
-        array (
-            'Whoops\\' => 7,
-        ),
         'S' => 
         array (
             'Symfony\\Polyfill\\Mbstring\\' => 26,
@@ -99,10 +95,6 @@ class ComposerStaticInitf9904d091832bccf456552aa8d9e92f8
         'Zend\\Barcode\\' => 
         array (
             0 => __DIR__ . '/..' . '/zendframework/zend-barcode/src',
-        ),
-        'Whoops\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/filp/whoops/src/Whoops',
         ),
         'Symfony\\Polyfill\\Mbstring\\' => 
         array (

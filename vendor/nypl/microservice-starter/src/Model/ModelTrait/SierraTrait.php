@@ -3,12 +3,17 @@ namespace NYPL\Starter\Model\ModelTrait;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ConnectException;
+use NYPL\Starter\Cache;
 use NYPL\Starter\Config;
 use NYPL\Starter\APIException;
-use NYPL\Starter\DB;
 
 trait SierraTrait
 {
+    protected static $cacheKey = 'PatronService:Sierra:Token';
+
+    private $timeoutSeconds = 10;
+
     /**
      * @param string $id
      *
@@ -56,8 +61,15 @@ trait SierraTrait
                 [
                     'verify' => false,
                     'headers' => $headers,
-                    'body' => $this->getBody()
+                    'body' => $this->getBody(),
+                    'timeout' => $this->getTimeoutSeconds()
                 ]
+            );
+        } catch (ConnectException $connectException) {
+            throw new APIException(
+                'Error connecting to ' . $connectException->getRequest()->getUri() . ': ' .
+                $connectException->getMessage(),
+                $connectException
             );
         } catch (ClientException $clientException) {
             if (!$ignoreNoRecord) {
@@ -79,13 +91,29 @@ trait SierraTrait
      */
     protected function saveToken(array $token = [])
     {
-        $token["expire_time"] = time() + $token["expires_in"];
+        $token['expire_time'] = time() + $token['expires_in'];
 
-        $insertStatement = DB::getDatabase()->insert(array_keys($token))
-            ->into("Token")
-            ->values(array_values($token));
+        Cache::getCache()->set($this->getCacheKey(), serialize($token));
+    }
 
-        $insertStatement->execute(true);
+    /**
+     * @return bool|array
+     */
+    protected function getCachedAccessToken()
+    {
+        $token = Cache::getCache()->get($this->getCacheKey());
+
+        if (!$token) {
+            return false;
+        }
+
+        $token = unserialize($token);
+
+        if ($token['expire_time'] <= time()) {
+            return false;
+        }
+
+        return $token;
     }
 
     /**
@@ -93,15 +121,8 @@ trait SierraTrait
      */
     protected function getAccessToken()
     {
-        $selectStatement = DB::getDatabase()->select()
-            ->from("Token")
-            ->where("expire_time", ">", time());
 
-        $selectStatement = $selectStatement->execute();
-
-        if ($selectStatement->rowCount()) {
-            $token = $selectStatement->fetch();
-
+        if ($token = $this->getCachedAccessToken()) {
             return $token['access_token'];
         }
 
@@ -109,11 +130,12 @@ trait SierraTrait
 
         $this->saveToken($token);
 
-        return $token["access_token"];
+        return $token['access_token'];
     }
 
     /**
      * @return string
+     * @throws APIException
      */
     protected function getNewToken()
     {
@@ -124,16 +146,41 @@ trait SierraTrait
             Config::get('SIERRA_OAUTH_TOKEN_URI'),
             [
                 'auth' => [
-                    Config::get('SIERRA_OAUTH_CLIENT_ID'),
-                    Config::get('SIERRA_OAUTH_CLIENT_SECRET')
+                    Config::get('SIERRA_OAUTH_CLIENT_ID', null, true),
+                    Config::get('SIERRA_OAUTH_CLIENT_SECRET', null, true)
                 ],
                 'form_params' => [
                     'grant_type' => 'client_credentials'
                 ],
-                'verify' => false
+                'verify' => false,
+                'timeout' => $this->getTimeoutSeconds()
             ]
         );
 
         return (string) $request->getBody();
+    }
+
+    /**
+     * @return string
+     */
+    protected function getCacheKey()
+    {
+        return (string) self::$cacheKey . ':' . md5(Config::get('SIERRA_BASE_API_URL'));
+    }
+
+    /**
+     * @return int
+     */
+    public function getTimeoutSeconds()
+    {
+        return $this->timeoutSeconds;
+    }
+
+    /**
+     * @param int $timeoutSeconds
+     */
+    public function setTimeoutSeconds($timeoutSeconds)
+    {
+        $this->timeoutSeconds = (int) $timeoutSeconds;
     }
 }
