@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "ec620612f8801732ee03f8004dda1d81",
+    "hash": "1b0d26279f9190c9455433045e9797ec",
     "content-hash": "5f19420228d6d76a587cd752f91063ff",
     "packages": [
         {
@@ -650,16 +650,16 @@
         },
         {
             "name": "nypl/microservice-starter",
-            "version": "0.1.46",
+            "version": "0.1.51",
             "source": {
                 "type": "git",
                 "url": "https://github.com/NYPL/php-microservice-starter.git",
-                "reference": "26c0a121311f53ace1d1b34e57247bc742c9bcde"
+                "reference": "e72c27c944e3e5bed7b3f20d85c073e11ee1d597"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/NYPL/php-microservice-starter/zipball/26c0a121311f53ace1d1b34e57247bc742c9bcde",
-                "reference": "26c0a121311f53ace1d1b34e57247bc742c9bcde",
+                "url": "https://api.github.com/repos/NYPL/php-microservice-starter/zipball/e72c27c944e3e5bed7b3f20d85c073e11ee1d597",
+                "reference": "e72c27c944e3e5bed7b3f20d85c073e11ee1d597",
                 "shasum": ""
             },
             "require": {
@@ -688,7 +688,7 @@
                 }
             ],
             "description": "NYPL Microservice Starter",
-            "time": "2017-04-09 21:02:05"
+            "time": "2017-04-17 16:27:37"
         },
         {
             "name": "pimple/pimple",
