@@ -12,7 +12,7 @@ Config::initialize(__DIR__ . '/config');
 
 $service = new Service();
 
-$service->get("/swagger/general", function (Request $request, Response $response) {
+$service->get("/docs/barcode", function (Request $request, Response $response) {
     return SwaggerGenerator::generate(
         [__DIR__ . "/src", __DIR__ . "/vendor/nypl/microservice-starter/src"],
         $response

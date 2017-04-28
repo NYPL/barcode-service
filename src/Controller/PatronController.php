@@ -1,6 +1,9 @@
 <?php
 namespace NYPL\Services\Controller;
 
+use NYPL\Services\Model\DataModel\PatronBarcode;
+use NYPL\Services\Model\Response\SuccessResponse\BarcodeResponse;
+use NYPL\Starter\APIException;
 use NYPL\Starter\Controller;
 use NYPL\Starter\Filter;
 use NYPL\Services\Model\DataModel\BasePatron\Patron;
@@ -78,11 +81,11 @@ final class PatronController extends Controller
     /**
      * @SWG\Get(
      *     path="/v0.1/patrons/{id}/barcode",
-     *     summary="Get a Patron's barcode in Base64 encoded PNG format",
+     *     summary="Get a Patron's barcode",
      *     tags={"patrons"},
      *     operationId="getBarcode",
      *     consumes={"application/json"},
-     *     produces={"text/plain"},
+     *     produces={"application/json"},
      *     @SWG\Parameter(
      *         description="ID of Patron",
      *         in="path",
@@ -105,7 +108,8 @@ final class PatronController extends Controller
      *     ),
      *     @SWG\Response(
      *         response=200,
-     *         description="Successful operation"
+     *         description="Successful operation",
+     *         @SWG\Schema(ref="#/definitions/BarcodeResponse")
      *     ),
      *     @SWG\Response(
      *         response="404",
@@ -128,6 +132,24 @@ final class PatronController extends Controller
     {
         $this->checkAccess($id);
 
-        return $this->getBarcodeAsText($this->getPatron($id));
+        $patron = $this->getPatron($id);
+
+        if (!$patron->getPrimaryBarcode()) {
+            throw new APIException('No patron barcode found.', null, 0, null, 404);
+        }
+
+        $patronBarcode = new PatronBarcode();
+
+        $patronBarcode->setBarCode($patron->getPrimaryBarcode());
+        $patronBarcode->setName($patron->getPrimaryName());
+        $patronBarcode->setTemporary($patron->isTemporary());
+
+        if (!$patron->isTemporary()) {
+            $patronBarcode->setBase64PngBarCode($this->getBarcodeAsText($patron));
+        }
+
+        return $this->getResponse()->withJson(
+            new BarcodeResponse($patronBarcode)
+        );
     }
 }
