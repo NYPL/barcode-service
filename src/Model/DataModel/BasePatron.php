@@ -404,7 +404,7 @@ abstract class BasePatron extends DataModel
      */
     public function getPrimaryBarcode()
     {
-        return (string) current($this->getBarCodes());
+        return (string) $this->getBarCodes()[count($this->getBarCodes()) - 1];
     }
 
     /**
@@ -420,6 +420,6 @@ abstract class BasePatron extends DataModel
      */
     public function isTemporary()
     {
-        return strlen($this->getPrimaryBarcode()) > 10;
+        return strlen($this->getPrimaryBarcode()) < 10;
     }
 }

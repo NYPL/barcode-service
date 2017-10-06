@@ -2,7 +2,6 @@
 namespace NYPL\Starter\Model\ModelTrait;
 
 use NYPL\Starter\Cache;
-use NYPL\Starter\Model;
 use NYPL\Starter\Model\ModelInterface\MessageInterface;
 use NYPL\Starter\Model\ModelInterface\DeleteInterface;
 
@@ -40,7 +39,7 @@ trait CacheCreateTrait
 
         try {
             if ($this instanceof MessageInterface) {
-                $this->publishMessage($this->getObjectName(), $this->createMessage());
+                $this->publishMessage($this->getStreamName(), $this->createMessage());
             }
         } catch (\Exception $exception) {
             if ($this instanceof DeleteInterface) {

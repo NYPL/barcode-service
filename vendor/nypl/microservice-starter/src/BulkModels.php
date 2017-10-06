@@ -122,29 +122,31 @@ class BulkModels
 
     /**
      * @param bool $useId
-     * @throws \InvalidArgumentException|\AvroIOException
+     * @throws \InvalidArgumentException|\AvroIOException|APIException
      */
     public function create($useId = false)
     {
+        if (!$this->getModels()) {
+            throw new APIException(
+                'No records provided for create operation.',
+                null,
+                0,
+                null,
+                400
+            );
+        }
+
         /**
          * @var $model Model|DBCreateTrait
          */
-        foreach ($this->getModels() as $count => $model) {
-            try {
-                if ($this instanceof MessageInterface) {
-                    $this->setPublishMessages(true);
-                }
-
-                $model->create($useId);
-
-                $this->addSuccessModel($model);
-            } catch (\Exception $exception) {
-                $this->addBulkError(new BulkError(
-                    $count,
-                    $exception->getMessage(),
-                    $model->getRawData()
-                ));
+        foreach ($this->getModels() as $model) {
+            if ($this instanceof MessageInterface) {
+                $this->setPublishMessages(true);
             }
+
+            $model->create($useId);
+
+            $this->addSuccessModel($model);
         }
 
         $this->bulkPublishMessages(

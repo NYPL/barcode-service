@@ -10,7 +10,7 @@ use NYPL\Starter\Model\ModelTrait\SierraTrait\SierraReadTrait;
  */
 class Patron extends BasePatron implements ReadInterface
 {
-    const FIELDS = "id,updatedDate,createdDate,deletedDate,deleted,suppressed,names,barcodes,expirationDate,birthDate,emails,patronType,patronCodes,homeLibraryCode,message,blockInfo,addresses,phones,universityId,moneyOwed,fixedFields,varFields";
+    const FIELDS = "id,updatedDate,createdDate,deletedDate,deleted,suppressed,names,barcodes,expirationDate,birthDate,emails,patronType,patronCodes,homeLibraryCode,message,blockInfo,addresses,phones,moneyOwed,fixedFields,varFields";
 
     use SierraReadTrait;
 

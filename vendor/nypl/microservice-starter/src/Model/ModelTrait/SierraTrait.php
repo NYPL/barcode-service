@@ -4,9 +4,9 @@ namespace NYPL\Starter\Model\ModelTrait;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
-use NYPL\Starter\Cache;
 use NYPL\Starter\Config;
 use NYPL\Starter\APIException;
+use NYPL\Starter\AppCache;
 
 trait SierraTrait
 {
@@ -72,6 +72,8 @@ trait SierraTrait
                 $connectException
             );
         } catch (ClientException $clientException) {
+            $this->handleClientException($clientException);
+
             if (!$ignoreNoRecord) {
                 throw new APIException(
                     (string) $clientException->getMessage(),
@@ -87,13 +89,25 @@ trait SierraTrait
     }
 
     /**
+     * @param ClientException $clientException
+     */
+    protected function handleClientException(ClientException $clientException)
+    {
+        if ($clientException->getResponse()) {
+            $statusCode = $clientException->getResponse()->getStatusCode();
+
+            if ($statusCode === 400 || $statusCode === 403) {
+                $this->clearToken();
+            }
+        }
+    }
+
+    /**
      * @param array $token
      */
     protected function saveToken(array $token = [])
     {
-        $token['expire_time'] = time() + $token['expires_in'];
-
-        Cache::getCache()->set($this->getCacheKey(), serialize($token));
+        AppCache::set(self::$cacheKey, serialize($token), $token['expires_in']);
     }
 
     /**
@@ -101,32 +115,30 @@ trait SierraTrait
      */
     protected function getCachedAccessToken()
     {
-        $token = Cache::getCache()->get($this->getCacheKey());
+        $token = AppCache::get(self::$cacheKey);
 
         if (!$token) {
             return false;
         }
 
-        $token = unserialize($token);
-
-        if ($token['expire_time'] <= time()) {
-            return false;
-        }
-
-        return $token;
+        return unserialize($token);
     }
 
     /**
      * @return string
+     * @throws APIException
      */
     protected function getAccessToken()
     {
-
         if ($token = $this->getCachedAccessToken()) {
             return $token['access_token'];
         }
 
         $token = json_decode($this->getNewToken(), true);
+
+        if (!isset($token['access_token'])) {
+            throw new APIException('Unable to retrieve valid Sierra API token');
+        }
 
         $this->saveToken($token);
 
@@ -160,12 +172,9 @@ trait SierraTrait
         return (string) $request->getBody();
     }
 
-    /**
-     * @return string
-     */
-    protected function getCacheKey()
+    protected function clearToken()
     {
-        return (string) self::$cacheKey . ':' . md5(Config::get('SIERRA_BASE_API_URL'));
+        AppCache::delete(self::$cacheKey);
     }
 
     /**

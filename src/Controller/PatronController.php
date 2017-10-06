@@ -96,6 +96,12 @@ final class PatronController extends Controller
      *     ),
      *     @SWG\Parameter(
      *         in="query",
+     *         name="includeImage",
+     *         required=false,
+     *         type="boolean"
+     *     ),
+     *     @SWG\Parameter(
+     *         in="query",
      *         name="height",
      *         required=false,
      *         type="integer"
@@ -130,7 +136,9 @@ final class PatronController extends Controller
      */
     public function getBarcode($id)
     {
-        $this->checkAccess($id);
+        if (!$this->isAllowed($id) && !$this->getIdentityHeader()->isAllowableScope('read:patron')) {
+            $this->denyAccess('Invalid patron or scope requested');
+        }
 
         $patron = $this->getPatron($id);
 
@@ -144,7 +152,7 @@ final class PatronController extends Controller
         $patronBarcode->setName($patron->getPrimaryName());
         $patronBarcode->setTemporary($patron->isTemporary());
 
-        if (!$patron->isTemporary()) {
+        if ($this->getRequest()->getQueryParam('includeImage') === 'true' && !$patron->isTemporary()) {
             $patronBarcode->setBase64PngBarCode($this->getBarcodeAsText($patron));
         }
 

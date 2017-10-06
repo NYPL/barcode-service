@@ -2,7 +2,7 @@
   "name": "nypl-services",
   "description": "NYPL Services Package",
   "require": {
-    "nypl/microservice-starter": "~0.1",
+    "nypl/microservice-starter": "~1.0",
     "zendframework/zend-barcode": "2.6.0"
   },
   "require-dev": {
@@ -14,7 +14,8 @@
   },
   "scripts": {
     "post-update-cmd": [
-      "php -r \"copy('vendor/nypl/microservice-starter/scripts/index.js', 'index.js');\""
+      "php -r \"copy('vendor/nypl/microservice-starter/scripts/index.js', 'index.js');\"",
+      "php -r \"copy('vendor/nypl/microservice-starter/scripts/parser.js', 'parser.js');\""
     ]
   }
 }

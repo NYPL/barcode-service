@@ -68,11 +68,19 @@ class DefaultContainer extends Container
         );
     }
 
+    protected function handleError(Container $container, Request $request, \Throwable $exception)
+    {
+        $this->logError($request, $exception);
+
+        return $container["response"]
+            ->withStatus($this->getStatusCode($exception))
+            ->withJson($this->getErrorResponse($exception))
+            ->withHeader("Access-Control-Allow-Origin", "*");
+    }
+
     public function __construct()
     {
         parent::__construct();
-
-        $this["settings"]["displayErrorDetails"] = false;
 
         $this["settings"]["displayErrorDetails"] = false;
 
@@ -85,31 +93,15 @@ class DefaultContainer extends Container
             };
         };
 
-        $this["errorHandler"] = function (Container $container) {
+        $this['phpErrorHandler'] = function ($container) {
             return function (Request $request, Response $response, \Throwable $exception) use ($container) {
-                $this->logError($request, $exception);
-
-                return $container["response"]
-                    ->withStatus($this->getStatusCode($exception))
-                    ->withJson($this->getErrorResponse($exception))
-                    ->withHeader(
-                        "Access-Control-Allow-Origin",
-                        "*"
-                    );
+                return $this->handleError($container, $request, $exception);
             };
         };
 
-        $this["phpErrorHandler"] = function (Container $container) {
-            return function (Request $request, Response $response, \Throwable $throwable) use ($container) {
-                $this->logError($request, $throwable);
-
-                return $container["response"]
-                    ->withStatus(self::DEFAULT_ERROR_STATUS_CODE)
-                    ->withJson($this->getErrorResponse($throwable))
-                    ->withHeader(
-                        "Access-Control-Allow-Origin",
-                        "*"
-                    );
+        $this["errorHandler"] = function (Container $container) {
+            return function (Request $request, Response $response, \Throwable $exception) use ($container) {
+                return $this->handleError($container, $request, $exception);
             };
         };
     }

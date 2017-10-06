@@ -2,6 +2,9 @@
 namespace NYPL\Starter\Model\ModelTrait;
 
 use Aws\Kinesis\KinesisClient;
+use Aws\Result;
+use NYPL\Starter\APIException;
+use NYPL\Starter\APILogger;
 use NYPL\Starter\AvroLoader;
 use NYPL\Starter\Config;
 use NYPL\Starter\Model\ModelInterface\MessageInterface;
@@ -11,7 +14,7 @@ trait MessageTrait
     /**
      * @var string
      */
-    protected $topic = '';
+    protected $streamName = '';
 
     /**
      * @var KinesisClient
@@ -24,21 +27,21 @@ trait MessageTrait
     protected static $schemaCache = [];
 
     /**
-     * @param string $topic
+     * @param string $streamName
      * @param string $message'
      *
      * @throws \InvalidArgumentException
      */
-    protected function publishMessage($topic = '', $message = '')
+    protected function publishMessage($streamName = '', $message = '')
     {
-        $this->setTopic($topic);
+        $this->setStreamName($streamName);
 
-        $this->publishMessageAsKinesis($topic, $message);
+        $this->publishMessageAsKinesis($streamName, $message);
     }
 
     /**
      * @param array $models
-     * @throws \AvroIOException|\InvalidArgumentException
+     * @throws \AvroIOException|\InvalidArgumentException|APIException
      */
     protected function bulkPublishMessages(array $models = [])
     {
@@ -48,33 +51,67 @@ trait MessageTrait
          * @var $model MessageTrait
          */
         foreach ($models as $model) {
-            if (!$this->getTopic()) {
-                $this->setTopic($model->getObjectName());
-            }
-
             $records[] =  [
                 'Data' => $model->createMessage(),
                 'PartitionKey' => uniqid()
             ];
         }
 
-        self::getClient()->putRecords([
+        $result = self::getClient()->putRecords([
             'Records' => $records,
-            'StreamName' => $this->getTopic()
+            'StreamName' => $model->getStreamName()
         ]);
+
+        if ($result->get('FailedRecordCount')) {
+            APILogger::addError(
+                'Failed PutRecords',
+                $this->getFailedRecords($result)
+            );
+
+            throw new APIException(
+                'Error executing Kinesis PutRecords with ' .
+                $result->get('FailedRecordCount') . ' failed records'
+            );
+        }
+
+        if (count($records) !== count($result->get('Records'))) {
+            throw new APIException(
+                'Mismatched count in Kinesis PutRecords: expected ' .
+                count($records) . ' and got ' . count($result->get('Records'))
+            );
+        }
     }
 
     /**
-     * @param string $topic
+     * @param Result $result
+     *
+     * @return array
+     */
+    protected function getFailedRecords(Result $result)
+    {
+        $bulkErrors = [];
+
+        foreach ((array) $result->get('Records') as $result) {
+            if (isset($result['ErrorCode'])) {
+                $bulkErrors[] = $result;
+            }
+        }
+
+        return $bulkErrors;
+    }
+
+    /**
+     * @param string $streamName
      * @param string $message
+     *
      * @throws \InvalidArgumentException
      */
-    protected function publishMessageAsKinesis($topic = '', $message = '')
+    protected function publishMessageAsKinesis($streamName = '', $message = '')
     {
         self::getClient()->putRecord([
             'Data' => $message,
             'PartitionKey' => uniqid(),
-            'StreamName' => $topic
+            'StreamName' => $streamName
         ]);
     }
 
@@ -145,8 +182,8 @@ trait MessageTrait
      */
     public function getAvroSchema()
     {
-        if (isset(self::$schemaCache[$this->getTopic()])) {
-            return self::$schemaCache[$this->getTopic()];
+        if (isset(self::$schemaCache[$this->getStreamName()])) {
+            return self::$schemaCache[$this->getStreamName()];
         }
 
         /**
@@ -156,7 +193,7 @@ trait MessageTrait
 
         $schema = \AvroSchema::parse($jsonSchema);
 
-        self::$schemaCache[$this->getTopic()] = $schema;
+        self::$schemaCache[$this->getStreamName()] = $schema;
 
         return $schema;
     }
@@ -164,16 +201,22 @@ trait MessageTrait
     /**
      * @return string
      */
-    public function getTopic()
+    public function getStreamName()
     {
-        return $this->topic;
+        if (!$this->streamName) {
+            $this->setStreamName(
+                Config::get('DEFAULT_STREAM', $this->getObjectName())
+            );
+        }
+
+        return $this->streamName;
     }
 
     /**
-     * @param string $topic
+     * @param string $streamName
      */
-    public function setTopic($topic)
+    public function setStreamName($streamName)
     {
-        $this->topic = $topic;
+        $this->streamName = $streamName;
     }
 }
