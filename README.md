@@ -3,9 +3,6 @@
 [![Build Status](https://travis-ci.org/NYPL-discovery/barcodeservice.svg?branch=master)](https://travis-ci.org/NYPL-discovery/barcodeservice)
 [![Coverage Status](https://coveralls.io/repos/github/NYPL-discovery/barcodeservice/badge.svg?branch=travis)](https://coveralls.io/github/NYPL-discovery/barcodeservice?branch=travis)
 
-This package is intended to be used as a Lambda-based Node.js/PHP Barcode Service using the 
-[NYPL PHP Microservice Starter](https://github.com/NYPL/php-microservice-starter).
-
 This package adheres to [PSR-1](http://www.php-fig.org/psr/psr-1/), 
 [PSR-2](http://www.php-fig.org/psr/psr-2/), and [PSR-4](http://www.php-fig.org/psr/psr-4/) 
 (using the [Composer](https://getcomposer.org/) autoloader).
