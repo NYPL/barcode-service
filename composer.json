@@ -2,7 +2,7 @@
   "name": "nypl-services",
   "description": "NYPL Services Package",
   "require": {
-    "nypl/microservice-starter": "~1.0",
+    "nypl/microservice-starter": "1.1.19",
     "zendframework/zend-barcode": "2.6.0"
   },
   "require-dev": {
