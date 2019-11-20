@@ -1,5 +1,9 @@
 # NYPL Barcode Service
 
+This app service the following routes:
+ - `GET /api/v0.1/patrons/{id}/barcode`
+ - `GET /docs/barcode`
+ 
 [![Build Status](https://travis-ci.org/NYPL-discovery/barcodeservice.svg?branch=master)](https://travis-ci.org/NYPL-discovery/barcodeservice)
 [![Coverage Status](https://coveralls.io/repos/github/NYPL-discovery/barcodeservice/badge.svg?branch=travis)](https://coveralls.io/github/NYPL-discovery/barcodeservice?branch=travis)
 
