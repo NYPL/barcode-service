@@ -1,3 +1,9 @@
+# Deprecated
+
+As of August 2024, this codebase and the relevant AWS Lambda has been decommissioned and will not be supported. The Platform API endpoint this app served was `/api/v0.1/patron/{id}/barcode` and will be removed. Please contact the NYPL LSP or Remediation teams with any questions.
+
+-----
+
 # NYPL Barcode Service
 
 This app service the following routes:
