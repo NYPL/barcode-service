@@ -1,3 +1,15 @@
+# Deprecated
+
+As of August 2024, this codebase and the relevant AWS Lambda has been decommissioned and will not be supported. The Platform API endpoint this app served was `/api/v0.1/patron/{id}/barcode` and will be removed. Please contact the NYPL LSP or Remediation teams with any questions.
+
+## Getting Patron Barcodes
+
+Searching within the `nypl` and `nypl-discovery` Github orgs, here is one example of getting a patron's barcodes through a different approach:
+
+- [`nypl-hold-request-consumer`](https://github.com/NYPL/nypl-hold-request-consumer/blob/development/src/helpers/ApiServiceHelper.js#L261) - This app is hitting the `/patrons/{id}` endpoint and getting the patron's barcode from the response's `barCodes` array.
+
+-----
+
 # NYPL Barcode Service
 
 This app service the following routes:
